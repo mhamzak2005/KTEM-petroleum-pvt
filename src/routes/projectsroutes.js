@@ -16,22 +16,22 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Admin Utility Route
-router.get('/penis', async (req, res) => {
-  try {
-    const result = await Project.updateMany(
-      { scopes: { $exists: false } }, 
-      { $set: { scopes: [] } }
-    );
-    res.status(200).json({
-      message: "Projects updated successfully",
-      matchedCount: result.matchedCount,
-      modifiedCount: result.modifiedCount
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Error initializing scopes", error: err.message });
-  }
-});
+// // Admin Utility Route
+// router.get('/penis', async (req, res) => {
+//   try {
+//     const result = await Project.updateMany(
+//       { scopes: { $exists: false } }, 
+//       { $set: { scopes: [] } }
+//     );
+//     res.status(200).json({
+//       message: "Projects updated successfully",
+//       matchedCount: result.matchedCount,
+//       modifiedCount: result.modifiedCount
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: "Error initializing scopes", error: err.message });
+//   }
+// });
 
 // 2. PATCH/PUT: Edit a project
 router.patch('/:id', async (req, res) => {
