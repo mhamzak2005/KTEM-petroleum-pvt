@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
 const projectSchema = new mongoose.Schema({
-  id: { type: String, required: true, },
+  id: { type: String },
   title: { type: String, required: true },
   client: { type: String, required: true },
-  location: { type: String, required: true },
+  location: { type: String },
   description: { type: String },
   // Adding the scopes array here
   scopes: { 
