@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/project');
-const { protect } = require('../middleware/auth'); // Import the middleware
+const { protect } = require('../middleware/auth');
 
 // 1. GET: Fetch all projects
-// Optional: filter by status using /api/projects?status=completed
 router.get('/', async (req, res) => {
   try {
     const { status } = req.query;
@@ -17,36 +16,30 @@ router.get('/', async (req, res) => {
   }
 });
 
-// PUT /api/projects/initialize-scopes
+// Admin Utility Route
 router.get('/penis', async (req, res) => {
   try {
-    // $exists: false finds documents that don't have the scopes field yet
-    // $set: { scopes: [] } initializes it as an empty array
     const result = await Project.updateMany(
       { scopes: { $exists: false } }, 
       { $set: { scopes: [] } }
     );
-
     res.status(200).json({
       message: "Projects updated successfully",
       matchedCount: result.matchedCount,
       modifiedCount: result.modifiedCount
     });
   } catch (err) {
-    res.status(500).json({ 
-      message: "Error initializing scopes", 
-      error: err.message 
-    });
+    res.status(500).json({ message: "Error initializing scopes", error: err.message });
   }
 });
+
 // 2. PATCH/PUT: Edit a project
-// Access via: PATCH /api/projects/def-1 (using your custom string ID)
 router.patch('/:id', async (req, res) => {
   try {
     const updatedProject = await Project.findOneAndUpdate(
-      { id: req.params.id }, // Find by your custom "def-x" ID
-      { $set: req.body },    // Update with the fields sent in request body
-      { new: true, runValidators: true } // Return the new object & validate enums
+      { id: req.params.id }, 
+      { $set: req.body },    
+      { new: true, runValidators: true } 
     );
 
     if (!updatedProject) {
@@ -63,7 +56,6 @@ router.patch('/:id', async (req, res) => {
 });
 
 // 3. DELETE: Remove a project
-// Access via: DELETE /api/projects/def-1
 router.delete('/:id', async (req, res) => {
   try {
     const deletedProject = await Project.findOneAndDelete({ id: req.params.id });
@@ -80,8 +72,8 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: "Deletion failed", error: err.message });
   }
 });
-// 2. POST: Create a new project
-// Access via: POST /api/projects
+
+// 4. POST: Create a new project (ID and Location are now OPTIONAL)
 router.post('/', async (req, res) => {
   try {
     const {
@@ -95,24 +87,25 @@ router.post('/', async (req, res) => {
       scopes
     } = req.body;
 
-    // Basic validation
-    if (!id || !title) {
-      return res.status(400).json({ message: "ID and Title are required" });
+    // VALIDATION: Only Title is strictly required for the database to start a record
+    if (!title) {
+      return res.status(400).json({ message: "Title is required" });
     }
 
-    // Ensure scopes is always an array of strings
+    // Ensure scopes is always an array
     const safeScopes = Array.isArray(scopes)
       ? scopes.map(s => String(s).trim()).filter(Boolean)
       : [];
 
     const newProject = new Project({
-      id,
+      // If id is missing, generate a temporary one based on timestamp
+      id: id || `proj_${Date.now()}`, 
       title,
-      client,
-      location,
-      description,
-      status,
-      year,
+      client: client || "",
+      location: location || "", // Made optional
+      description: description || "",
+      status: status || "completed",
+      year: year || new Date().getFullYear().toString(),
       scopes: safeScopes
     });
 
@@ -124,7 +117,6 @@ router.post('/', async (req, res) => {
     });
 
   } catch (err) {
-    // Handle duplicate ID error (if id is unique in schema)
     if (err.code === 11000) {
       return res.status(400).json({
         message: "Project ID already exists"
@@ -137,4 +129,5 @@ router.post('/', async (req, res) => {
     });
   }
 });
+
 module.exports = router;
