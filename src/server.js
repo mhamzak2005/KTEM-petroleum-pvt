@@ -46,9 +46,24 @@ app.use('/auth', require('./routes/auth'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/services', require('./routes/serviceRoutes'));
 app.use('/api/projects', require('./routes/projectsroutes'));
-// 3. Simple Test Route (Replaces external routes)
+// API Documentation Route
 app.get('/', (req, res) => {
-    res.json({ status: true, message: 'Server is running without routes/auth' });
+    res.json({ 
+        status: true, 
+        message: 'KTEM API Server',
+        version: '1.0.0',
+        endpoints: {
+            auth: {
+                'POST /auth/login': 'Login with email and password',
+                'POST /auth/signup': 'Register a new user account'
+            },
+            api: {
+                'GET /api/products': 'Get all products',
+                'GET /api/services': 'Get all services',
+                'GET /api/projects': 'Get all projects'
+            }
+        }
+    });
 });
 
 // Error Handling
