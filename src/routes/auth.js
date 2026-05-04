@@ -42,4 +42,43 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Signup Route
+router.post('/signup', async (req, res) => {
+    const { email, password, name } = req.body;
+
+    try {
+        // 1. Validate required fields
+        if (!email || !password) {
+            return res.status(400).json({ status: false, message: 'Email and password are required' });
+        }
+
+        // 2. Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ status: false, message: 'An account with this email already exists' });
+        }
+
+        // 3. Create new user (password is hashed automatically by the pre-save hook)
+        const user = await User.create({ name, email, password });
+
+        // 4. Create a JWT Token
+        const token = jwt.sign(
+            { id: user._id, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        // 5. Send the token back to the frontend
+        res.status(201).json({
+            status: true,
+            message: 'Account created successfully!',
+            token: token,
+            user: { id: user._id, email: user.email, name: user.name }
+        });
+
+    } catch (error) {
+        res.status(500).json({ status: false, message: error.message });
+    }
+});
+
 module.exports = router;
